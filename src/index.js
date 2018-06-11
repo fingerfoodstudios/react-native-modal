@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import {
-  Dimensions,
   Modal,
   DeviceEventEmitter,
   TouchableWithoutFeedback,
@@ -16,6 +15,7 @@ import {
   registerAnimation,
   createAnimation
 } from "react-native-animatable";
+import ExtraDimensions from "react-native-extra-dimensions-android";
 import * as ANIMATION_DEFINITIONS from "./animations";
 
 import styles from "./index.style.js";
@@ -86,13 +86,9 @@ export class ReactNativeModal extends Component {
   // We use an internal state for keeping track of the modal visibility: this allows us to keep
   // the modal visibile during the exit animation, even if the user has already change the
   // isVisible prop to false.
-  // We store in the state the device width and height so that we can update the modal on
-  // device rotation.
   state = {
     showContent: true,
     isVisible: false,
-    deviceWidth: Dimensions.get("window").width,
-    deviceHeight: Dimensions.get("window").height,
     isSwipeable: this.props.swipeDirection ? true : false,
     pan: null
   };
@@ -102,6 +98,16 @@ export class ReactNativeModal extends Component {
 
   constructor(props) {
     super(props);
+
+    // We store in the state the device width and height so that we can update the modal on
+    // device rotation.
+    const { deviceHeight, deviceWidth } = this.getDeviceDimensions();
+    this.state = {
+      ...this.state,
+      deviceWidth,
+      deviceHeight
+    };
+
     this.buildAnimations(props);
     if (this.state.isSwipeable) {
       this.state = { ...this.state, pan: new Animated.ValueXY() };
@@ -292,13 +298,25 @@ export class ReactNativeModal extends Component {
 
   handleDimensionsUpdate = dimensionsUpdate => {
     // Here we update the device dimensions in the state if the layout changed (triggering a render)
-    const deviceWidth = Dimensions.get("window").width;
-    const deviceHeight = Dimensions.get("window").height;
+    this.updateDeviceDimensions();
+  };
+
+  getDeviceDimensions = () => {
+    const deviceWidth = ExtraDimensions.get("REAL_WINDOW_WIDTH");
+    const deviceHeight = ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+    return { deviceWidth, deviceHeight };
+  };
+
+  updateDeviceDimensions = () => {
+    const dimensions = this.getDeviceDimensions();
     if (
-      deviceWidth !== this.state.deviceWidth ||
-      deviceHeight !== this.state.deviceHeight
+      dimensions.deviceWidth !== this.state.deviceWidth ||
+      dimensions.deviceHeight !== this.state.deviceHeight
     ) {
-      this.setState({ deviceWidth, deviceHeight });
+      this.setState({
+        deviceWidth: dimensions.deviceWidth,
+        deviceHeight: dimensions.deviceHeight
+      });
     }
   };
 
