@@ -6,7 +6,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   PanResponder,
-  Animated
+  Animated,
+  Dimensions
 } from "react-native";
 import PropTypes from "prop-types";
 import {
@@ -302,8 +303,17 @@ export class ReactNativeModal extends Component {
   };
 
   getDeviceDimensions = () => {
-    const deviceWidth = ExtraDimensions.get("REAL_WINDOW_WIDTH");
-    const deviceHeight = ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+    let deviceWidth;
+    let deviceHeight;
+    if (Platform.OS === "android") {
+      deviceWidth = ExtraDimensions.get("REAL_WINDOW_WIDTH");
+      deviceHeight = ExtraDimensions.get("REAL_WINDOW_HEIGHT");
+    } else {
+      const dimensions = Dimensions.get("window");
+      deviceWidth = dimensions.width;
+      deviceHeight = dimensions.height;
+    }
+
     return { deviceWidth, deviceHeight };
   };
 
